@@ -315,6 +315,7 @@ mysql -e "UPDATE mysql.user SET Password = PASSWORD('root') WHERE User = 'root'"
 mysql -e "DROP USER ''@'localhost'" &>> /var/log/VMInstaller-output.log
 mysql -e "DROP USER ''@'$(hostname)'" &>> /var/log/VMInstaller-output.log
 mysql -e "DROP DATABASE test" &>> /var/log/VMInstaller-output.log
+mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root'"; &>> /var/log/VMInstaller-output.log
 mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root'"; &>> /var/log/VMInstaller-output.log
 mysql -e "FLUSH PRIVILEGES" &>> /var/log/VMInstaller-output.log
 
@@ -404,7 +405,7 @@ inform
 sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' &>> /var/log/VMInstaller-output.log
 check
 
-DOING="Mise à jou dru système [REPOSITORY]"
+DOING="Mise à jour du système [REPOSITORY]"
 inform
 apt update &>> /var/log/VMInstaller-output.log
 check
