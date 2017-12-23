@@ -127,7 +127,7 @@ ping -c 3 localhost &>/dev/null
 
 clear
 echo -e " "
-echo -e " Le script va maintenant mettre à jou vrotre système"
+echo -e " Le script va maintenant mettre à jour votre système"
 echo -e " et installer quelques dépendances qui seront nécessaires"
 echo -e " prochainement "
 echo -e " "
