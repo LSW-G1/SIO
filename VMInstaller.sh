@@ -315,8 +315,8 @@ mysql -e "UPDATE mysql.user SET Password = PASSWORD('root') WHERE User = 'root'"
 mysql -e "DROP USER ''@'localhost'" &>> /var/log/VMInstaller-output.log
 mysql -e "DROP USER ''@'$(hostname)'" &>> /var/log/VMInstaller-output.log
 mysql -e "DROP DATABASE test" &>> /var/log/VMInstaller-output.log
-mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root'"; &>> /var/log/VMInstaller-output.log
-mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root'"; &>> /var/log/VMInstaller-output.log
+mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root'" &>> /var/log/VMInstaller-output.log
+mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root'" &>> /var/log/VMInstaller-output.log
 mysql -e "FLUSH PRIVILEGES" &>> /var/log/VMInstaller-output.log
 
 # Allow external connection
@@ -325,7 +325,7 @@ check
 
 DOING="Redémarrage du service MySQL"
 inform
-service mysql restart
+service mysql restart &>> /var/log/VMInstaller-output.log
 check
 
 # Timeout
@@ -658,8 +658,8 @@ echo -e " "
 
 DOING="Autorisation de la connexion ROOT en SSH"
 inform
-sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config &>/var/log/VMInstaller-output.log
-sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config &>/var/log/VMInstaller-output.log
+sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config &>>/var/log/VMInstaller-output.log
+sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config &>>/var/log/VMInstaller-output.log
 service sshd restart
 check
 
