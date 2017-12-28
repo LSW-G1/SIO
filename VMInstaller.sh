@@ -74,11 +74,11 @@ echo -e " "
 
 # Removing previous log files
 if [[ -f /var/log/VMInstaller-output.log ]]; then
-	rm -f /var/log/VMInstaller-output.log &> /dev/null
+	rm -f /var/log/VMInstaller-output.log &>/dev/null
 fi
 
 if [[ -f /var/log/VMInstaller.log ]]; then
-	rm -f /var/log/VMInstaller.log &> /dev/null
+	rm -f /var/log/VMInstaller.log &>/dev/null
 fi
 
 # Checking root access
@@ -105,6 +105,10 @@ if [[ $CONFIRM == "O" || $CONFIRM == "o" ]]; then
 	echo -e " ${CG}Lancement du script...${CE}"
 	echo -e " "
 
+	log "INFO" "Local IP: ${IP}"
+	log "INFO" "Linux version: $(uname -a)"
+	log "INFO" "Debian version: $(cat /etc/debian_version)"
+
 	log "OK" "${DOING}"
 else
 	echo -e " ${CR}Arrêt du script...${CE}"
@@ -114,8 +118,7 @@ else
 	exit 1
 fi
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 
 
@@ -135,35 +138,34 @@ echo -e " "
 # Updating repository
 DOING="Mise à jour du système [REPOSITORY]"
 inform
-apt update &>> /var/log/VMInstaller-output.log
+apt update &>>/var/log/VMInstaller-output.log
 check
 
 # Updating packages and system
 DOING="Mise à jour du système [PACKAGES] "
 inform
-apt full-upgrade -y &>> /var/log/VMInstaller-output.log
+apt full-upgrade -y &>>/var/log/VMInstaller-output.log
 check
 
 # Removing unused packages
 DOING="Mise à jour du système [REMOVE UNUSED PACKAGES]"
 inform
-apt autoremove -y &>> /var/log/VMInstaller-output.log
+apt autoremove -y &>>/var/log/VMInstaller-output.log
 check
 
 # Removing old packages
 DOING="Mise à jour du système [REMOVE OLD VERSION]"
 inform
-apt autoclean -y &>> /var/log/VMInstaller-output.log
+apt autoclean -y &>>/var/log/VMInstaller-output.log
 check
 
 # Installing dependencies
 DOING="Installation des dépendances"
 inform
-apt install make gcc dkms linux-source linux-headers-$(uname -r) apt-transport-https lsb-release ca-certificates openssh-server -y &>> /var/log/VMInstaller-output.log
+apt install make gcc dkms linux-source linux-headers-$(uname -r) apt-transport-https lsb-release ca-certificates openssh-server -y &>>/var/log/VMInstaller-output.log
 check
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 
 
@@ -173,18 +175,49 @@ ping -c 3 localhost &>/dev/null
 # * GUEST ADDTIONS
 # ***
 
-clear
-echo -e " "
-echo -e " Le script va maintenant vérifier les Additions Invité "
-echo -e " "
 
 while [[ $CDROM != true ]]; do
-	DOING="Recherche de l'image CD des Additions Invité"
+	clear
+	echo -e " "
+	echo -e " Le script va maintenant vérifier les Additions Invité "
+	echo -e " "
+	
+	DOING="Recherche de la présence du CD"
 	inform
+	blkid /dev/sr0  &>>/var/log/VMInstaller-output.log
 
-	blkid /dev/sr0  &>> /var/log/VMInstaller-output.log
 	if [[ $? -eq 0 ]]; then
-		CDROM=true
+
+		# Mount the disc
+		DOING="Montage du CD"
+		inform
+		mount /media/cdrom &>>/var/log/VMInstaller-output.log
+		check
+
+		if [[ -f /media/cdrom/VBoxLinuxAdditions.run ]]; then
+			# Assume it's the Guest Additions CD	
+			CDROM=true
+
+			log "OK" "Bon CD détecté"
+		else
+			CDROM=false
+
+			log "FAILED" "Mauvais CD détecté"
+			umount /media/cdrom &>>/var/log/VMInstaller-output.log
+			log "INFO" "Démontage du CD"
+
+			clear
+			echo -e " "
+			echo -e " ${CC}Veuillez insérer le CD des Additions Invité${CE}"
+			echo -e " ${CC}Allez dans ${CY}Périphériques${CE}"
+			echo -e " ${CC}Puis cliquez sur ${CY}Insérer l'image CD des Additions Invité${CE}"
+			echo -e " "
+			echo -e " ${CR}[FAILED]${CE} - Mauvais CD détecté !"
+			echo -e " "
+
+			read -p " Appuyez sur une touche pour continuer... "
+			echo -e " "			
+		fi
 	else
 		CDROM=false
 
@@ -200,29 +233,19 @@ while [[ $CDROM != true ]]; do
 	fi
 done
 
-check
-
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 clear
 echo -e " "
 echo -e " Le script va maintenant installer les Additions Invité "
 echo -e " "
 
-# Mount the disc
-DOING="Montage du disque virtuel"
-inform
-mount /media/cdrom &>> /var/log/VMInstaller-output.log
-check
-
 DOING="Installation des Additions Invité"
 inform
-sh /media/cdrom/VBoxLinuxAdditions.run &>> /var/log/VMInstaller-output.log
+sh /media/cdrom/VBoxLinuxAdditions.run &>>/var/log/VMInstaller-output.log
 check
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 
 
@@ -241,11 +264,10 @@ while [[ $SHARING != "O" ]]; do
 	DOING="Recherche du dossier partagé"
 	inform
 
-	VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www &>> /var/log/VMInstaller-output.log
-	VBoxService &>> /var/log/VMInstaller-output.log
+	VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www &>>/var/log/VMInstaller-output.log
+	VBoxService &>>/var/log/VMInstaller-output.log
 
-	# Timeout
-	ping -c 2 localhost &>/dev/null
+	sleep 2
 
 	SHARING_PATH=$(find /var/www/ -type d -name "sf_*")
 
@@ -284,8 +306,7 @@ while [[ $SHARING != "O" ]]; do
 	fi
 done
 
-# Timeout
-ping -c 2 localhost &>/dev/null
+sleep 2
 
 
 
@@ -305,31 +326,30 @@ echo -e " "
 
 DOING="Installation de MariaDB"
 inform
-apt install mariadb-server -y &>> /var/log/VMInstaller-output.log
+apt install mariadb-server -y &>>/var/log/VMInstaller-output.log
 check
 
 DOING="Configuration de MariaDB"
 inform
 
-mysql -e "UPDATE mysql.user SET Password = PASSWORD('root') WHERE User = 'root'" &>> /var/log/VMInstaller-output.log
-mysql -e "DROP USER ''@'localhost'" &>> /var/log/VMInstaller-output.log
-mysql -e "DROP USER ''@'$(hostname)'" &>> /var/log/VMInstaller-output.log
-mysql -e "DROP DATABASE test" &>> /var/log/VMInstaller-output.log
-mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root'" &>> /var/log/VMInstaller-output.log
-mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root'" &>> /var/log/VMInstaller-output.log
-mysql -e "FLUSH PRIVILEGES" &>> /var/log/VMInstaller-output.log
+mysql -e "UPDATE mysql.user SET Password = PASSWORD('root') WHERE User = 'root'" &>>/var/log/VMInstaller-output.log
+mysql -e "DROP USER ''@'localhost'" &>>/var/log/VMInstaller-output.log
+mysql -e "DROP USER ''@'$(hostname)'" &>>/var/log/VMInstaller-output.log
+mysql -e "DROP DATABASE test" &>>/var/log/VMInstaller-output.log
+mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root'" &>>/var/log/VMInstaller-output.log
+mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root'" &>>/var/log/VMInstaller-output.log
+mysql -e "FLUSH PRIVILEGES" &>>/var/log/VMInstaller-output.log
 
 # Allow external connection
-sed -i "s/.*bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf &>> /var/log/VMInstaller-output.log
+sed -i "s/.*bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf &>>/var/log/VMInstaller-output.log
 check
 
 DOING="Redémarrage du service MySQL"
 inform
-service mysql restart &>> /var/log/VMInstaller-output.log
+service mysql restart &>>/var/log/VMInstaller-output.log
 check
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 
 
@@ -353,7 +373,6 @@ while [[ $WEBSERVER != "1" && $WEBSERVER != "2" ]]; do
 done
 
 echo -e " "
-log "CHOICE" "${WEBSERVER}"
 
 
 
@@ -365,28 +384,31 @@ log "CHOICE" "${WEBSERVER}"
 
 case $WEBSERVER in
 	1)
+		log "CHOIX" "Serveur web: NGINX"
+
 		DOING="Installation de Nginx"
 		inform
-		apt install nginx -y &>> /var/log/VMInstaller-output.log
+		apt install nginx -y &>>/var/log/VMInstaller-output.log
 		check
 		;;
 	2)
+		log "CHOIX" "Serveur web: APACHE2"
+
 		DOING="Installation d'Apache2"
 		inform
-		apt install apache2 -y &>> /var/log/VMInstaller-output.log
+		apt install apache2 -y &>>/var/log/VMInstaller-output.log
 		check
 		;;
 esac
 
 DOING="Changement des permissions"
 inform
-chmod 755 -R /var/www &>> /var/log/VMInstaller-output.log
-adduser root vboxsf &>> /var/log/VMInstaller-output.log
-adduser www-data vboxsf &>> /var/log/VMInstaller-output.log
+chmod 755 -R /var/www &>>/var/log/VMInstaller-output.log
+adduser root vboxsf &>>/var/log/VMInstaller-output.log
+adduser www-data vboxsf &>>/var/log/VMInstaller-output.log
 check
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 
 
@@ -397,21 +419,20 @@ ping -c 3 localhost &>/dev/null
 
 DOING="Téléchargement de la clé APT SURY"
 inform
-wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg &>> /var/log/VMInstaller-output.log
+wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg &>>/var/log/VMInstaller-output.log
 check
 
 DOING="Ajout du dépot SURY"
 inform
-sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' &>> /var/log/VMInstaller-output.log
+sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' &>>/var/log/VMInstaller-output.log
 check
 
 DOING="Mise à jour du système [REPOSITORY]"
 inform
-apt update &>> /var/log/VMInstaller-output.log
+apt update &>>/var/log/VMInstaller-output.log
 check
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 
 
@@ -425,19 +446,18 @@ case $WEBSERVER in
 	1)
 		DOING="Installation de ${PHPVER}-FPM"
 		inform
-		apt install ${PHPVER}-fpm ${PHPVER}-cli ${PHPVER}-common ${PHPVER}-mbstring ${PHPVER}-gd ${PHPVER}-intl ${PHPVER}-xml ${PHPVER}-mysql ${PHPVER}-zip -y &>> /var/log/VMInstaller-output.log
+		apt install ${PHPVER}-fpm ${PHPVER}-cli ${PHPVER}-common ${PHPVER}-mbstring ${PHPVER}-gd ${PHPVER}-intl ${PHPVER}-xml ${PHPVER}-mysql ${PHPVER}-zip -y &>>/var/log/VMInstaller-output.log
 		check
 		;;
 	2)
 		DOING="Installation de ${PHPVER}"
 		inform
-		apt install ${PHPVER} libapache2-mod-${PHPVER} ${PHPVER}-cli ${PHPVER}-common ${PHPVER}-mbstring ${PHPVER}-gd ${PHPVER}-intl ${PHPVER}-xml ${PHPVER}-mysql ${PHPVER}-zip -y &>> /var/log/VMInstaller-output.log
+		apt install ${PHPVER} libapache2-mod-${PHPVER} ${PHPVER}-cli ${PHPVER}-common ${PHPVER}-mbstring ${PHPVER}-gd ${PHPVER}-intl ${PHPVER}-xml ${PHPVER}-mysql ${PHPVER}-zip -y &>>/var/log/VMInstaller-output.log
 		check
 		;;
 esac
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 
 
@@ -460,12 +480,12 @@ case $WEBSERVER in
 
 		DOING="Génération de clé"
 		inform
-		openssl genrsa -out key.pem 4096 &>> /var/log/VMInstaller-output.log
+		openssl genrsa -out key.pem 4096 &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Génération de certificat TLS"
 		inform
-		openssl req -new -x509 -sha512 -days 3650 -key key.pem -out cert.pem -subj "/C=FR/ST=France/L=Saint-Etienne/O=BTS-SIO/OU=SLAM1/CN=localhost" &>> /var/log/VMInstaller-output.log
+		openssl req -new -x509 -sha512 -days 3650 -key key.pem -out cert.pem -subj "/C=FR/ST=France/L=Saint-Etienne/O=BTS-SIO/OU=SLAM1/CN=localhost" &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Configuration de NGINX"
@@ -543,31 +563,31 @@ server {
 }
 		''' > /etc/nginx/conf.d/website.conf
 
-		sed -i "s/PHPVER./\/${PHPVER}-/" /etc/nginx/conf.d/website.conf &>> /var/log/VMInstaller-output.log
+		sed -i "s/PHPVER./\/${PHPVER}-/" /etc/nginx/conf.d/website.conf &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Désactivation du site par défaut"
 		inform
-		rm /etc/nginx/sites-enabled/default
+		rm /etc/nginx/sites-enabled/default &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Redémarrage de NGINX"
 		inform
-		service nginx restart
+		service nginx restart &>>/var/log/VMInstaller-output.log
 		check
 		;;
 	2)
-		mkdir /etc/apache2/ssl
-		cd /etc/apache2/ssl/
+		mkdir /etc/apache2/ssl &>>/var/log/VMInstaller-output.log
+		cd /etc/apache2/ssl/ &>>/var/log/VMInstaller-output.log
 
 		DOING="Génération de clé"
 		inform
-		openssl genrsa -out key.pem 4096 &>> /var/log/VMInstaller-output.log
+		openssl genrsa -out key.pem 4096 &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Génération de certificat TLS"
 		inform
-		openssl req -new -x509 -sha512 -days 3650 -key key.pem -out cert.pem -subj "/C=FR/ST=France/L=Saint-Etienne/O=BTS-SIO/OU=SLAM1/CN=localhost" &>> /var/log/VMInstaller-output.log
+		openssl req -new -x509 -sha512 -days 3650 -key key.pem -out cert.pem -subj "/C=FR/ST=France/L=Saint-Etienne/O=BTS-SIO/OU=SLAM1/CN=localhost" &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Configuration d'APACHE"
@@ -613,35 +633,37 @@ server {
 
 		DOING="Désactivation du site par défaut"
 		inform
-		a2dissite 000-default &>> /var/log/VMInstaller-output.log
+		a2dissite 000-default &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Activation de la configuration"
 		inform
-		a2ensite website &>> /var/log/VMInstaller-output.log
+		a2ensite website &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Activation des modules 1/2"
 		inform
-		a2enmod ssl &>> /var/log/VMInstaller-output.log
+		a2enmod ssl &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Activation des modules 2/2"
 		inform
-		a2enmod headers  &>> /var/log/VMInstaller-output.log
+		a2enmod headers  &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Redémarrage d'APACHE"
 		inform
-		service apache2 restart  &>> /var/log/VMInstaller-output.log
+		service apache2 restart  &>>/var/log/VMInstaller-output.log
 		check
 		;;
 esac
 
-echo -e " "
+DOING="Suppression du dossier par défaut"
+inform
+rm -rf /var/www/html &>>/var/log/VMInstaller-output.log
+check
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+sleep 3
 
 
 
@@ -653,18 +675,43 @@ ping -c 3 localhost &>/dev/null
 
 clear
 echo -e " "
-echo -e " Le script va maintenant changer quelques configurations"
+echo -e " Dernières étapes..."
 echo -e " "
 
 DOING="Autorisation de la connexion ROOT en SSH"
 inform
 sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config &>>/var/log/VMInstaller-output.log
 sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config &>>/var/log/VMInstaller-output.log
-service sshd restart
+service sshd restart &>>/var/log/VMInstaller-output.log
 check
 
-# Timeout
-ping -c 3 localhost &>/dev/null
+
+DOING="Téléchargement de composer"
+inform
+wget https://getcomposer.org/installer -O composer-setup.php &>>/var/log/VMInstaller-output.log
+check
+
+DOING="Installation de composer"
+inform
+php composer-setup.php &>>/var/log/VMInstaller-output.log
+check
+
+rm composer-setup.php &>>/var/log/VMInstaller-output.log
+chmod +x composer.phar &>>/var/log/VMInstaller-output.log
+mv composer.phar /usr/local/bin/composer &>>/var/log/VMInstaller-output.log
+
+DOING="Téléchargement d'adminer.php"
+inform
+cd /var/www &>>/var/log/VMInstaller-output.log
+wget https://github.com/vrana/adminer/releases/download/v4.3.1/adminer-4.3.1.php -O adminer.php &>>/var/log/VMInstaller-output.log
+check
+
+DOING="Installation de git"
+inform
+apt install git -y &>>/var/log/VMInstaller-output.log
+check
+
+sleep 3
 
 
 
