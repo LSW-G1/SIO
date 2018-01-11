@@ -1,3 +1,7 @@
+# VMInstaller.sh
+# VERSION: V1.05
+# AUTHOR: Kevin Tartiere <ktartiere@gmail.com>
+
 #!/bin/bash
 
 # Colors
@@ -36,12 +40,41 @@ function check
 		# LOGING
 		log "OK" "${DOING}"
 	else
-		echo -e " \r ${CL}${CR}[FAILED]${CE} - ${DOING} "
-		echo -e " "
+		if [[ $1 == "VirtualBox" ]]; then
+			echo -e " \r ${CL}${CR}[ATTENTION] - ${DOING}${CE} "
+			echo -e " "
+			echo -e " S'il s'agit de la première installation des Additions Invités: "
+			echo -e " - ${CY}Arrêtez le script${CE}"
+			echo -e " - ${CY}Consultez /var/log/VMInstaller-output.log${CE}"
+			echo -e " "
+			echo -e " S'il ne s'agit pas de la première installation des Additions Invité sur la VM "
+			echo -e " - ${CY}Continuez le script${CE}"
+			echo -e " - ${CY}Vous devrez redémarrer votre machine après le script.${CE} "
+			echo -e " "
 
-		# LOGING
-		log "FAILED" "${DOING}"
-		exit 1
+			CONFIRM="-1"
+			while [[ $CONFIRM != "O" && $CONFIRM != "N" && $CONFIRM != "o" && $CONFIRM != "n" ]]; do
+				read -p " Voulez-vous continuer le script ? [O/N]: " CONFIRM
+			done
+
+			if [[ $CONFIRM == "O" || $CONFIRM == "o" ]]; then
+				log "VirtualBox" "${DOING}"
+				log "VirtualBox" "Un redémarrage de la machine est nécessaire"
+				log "VirtualBox" "Choice: ${CONFIRM}"
+			else
+				log "VirtualBox" "${DOING}"
+				log "VirtualBox" "Veuillez consulter les logs avancés [/var/log/VMInstaller-output.log]"
+				log "VirtualBox" "Choice: ${CONFIRM}"
+				exit 1
+			fi
+		else
+			echo -e " \r ${CL}${CR}[FAILED]${CE} - ${DOING} "
+			echo -e " "
+
+			# LOGING
+			log "FAILED" "${DOING}"
+			exit 1
+		fi
 	fi
 }
 
@@ -58,18 +91,18 @@ echo -e " Bienvenue"
 echo -e " Ce script permet l'installation et la configuration automatique de"
 echo -e " certains paquets utilisés lors de la formation BTS Service Informatique "
 echo -e " aux Organisations"
-echo -e " Il ne devrait être utilisé que sur ${CB}une Machine Virtuelle (VM) VirtualBox${CE}"
+echo -e " Il ne devrait être utilisé que sur ${CM}une Machine Virtuelle (VM) VirtualBox${CE}"
 echo -e " "
 echo -e " Au cours de l'installation, ce script nécessitera votre intervention "
 echo -e " afin de mettre en place vos préférences, ainsi que d'installer "
 echo -e " correctement tous les paquets "
 echo -e " Il a cependant été pensé pour être le plus simple possible "
 echo -e " "
-echo -e " Ce script a été développé par ${CB}TARTIERE Kevin${CE} "
+echo -e " Ce script a été développé par ${CM}TARTIERE Kevin${CE} "
 echo -e " En cas de difficulté(s), n'hésitez pas à envoyer un E-Mail avec vos logs "
 echo -e " Les logs se trouvent ici :"
-echo -e " - ${CB}/var/log/VMInstaller.log${CE} - log minimaliste"
-echo -e " - ${CB}/var/log/VMInstaller-output.log${CE} - log contenant les sorties des commandes "
+echo -e " - ${CM}/var/log/VMInstaller.log${CE} - log minimaliste"
+echo -e " - ${CM}/var/log/VMInstaller-output.log${CE} - log contenant les sorties des commandes "
 echo -e " "
 
 # Removing previous log files
@@ -85,7 +118,7 @@ fi
 DOING="Accès superutilisateur"
 if [[ "$EUID" -ne 0 ]]; then
 	echo -e " ${CR}[FAILED]${CE} - ${DOING}"
-	echo -e " Veuillez lancer le script avec les autorisations ${CB}root${CE} "
+	echo -e " Veuillez lancer le script avec les autorisations ${CM}root${CE} "
 	echo -e " "
 
 	exit 1
@@ -118,7 +151,7 @@ else
 	exit 1
 fi
 
-sleep 3
+sleep 1
 
 
 
@@ -160,12 +193,16 @@ apt autoclean -y &>>/var/log/VMInstaller-output.log
 check
 
 # Installing dependencies
-DOING="Installation des dépendances"
-inform
-apt install make gcc dkms linux-source linux-headers-$(uname -r) apt-transport-https lsb-release ca-certificates openssh-server -y &>>/var/log/VMInstaller-output.log
-check
+PACKAGES="make gcc dkms linux-source linux-headers-$(uname -r) apt-transport-https lsb-release ca-certificates openssh-server git"
 
-sleep 3
+for i in $PACKAGES; do
+	DOING="Installation des dépendances : ${i}"
+	inform
+	apt install -y ${i} &>>/var/log/VMInstaller-output.log
+	check
+done
+
+sleep 1
 
 
 
@@ -181,9 +218,7 @@ while [[ $CDROM != true ]]; do
 	echo -e " "
 	echo -e " Le script va maintenant vérifier les Additions Invité "
 	echo -e " "
-	
-	DOING="Recherche de la présence du CD"
-	inform
+
 	blkid /dev/sr0  &>>/var/log/VMInstaller-output.log
 
 	if [[ $? -eq 0 ]]; then
@@ -192,10 +227,9 @@ while [[ $CDROM != true ]]; do
 		DOING="Montage du CD"
 		inform
 		mount /media/cdrom &>>/var/log/VMInstaller-output.log
-		check
 
 		if [[ -f /media/cdrom/VBoxLinuxAdditions.run ]]; then
-			# Assume it's the Guest Additions CD	
+			# Assume it's the Guest Additions CD
 			CDROM=true
 
 			log "OK" "Bon CD détecté"
@@ -216,7 +250,7 @@ while [[ $CDROM != true ]]; do
 			echo -e " "
 
 			read -p " Appuyez sur une touche pour continuer... "
-			echo -e " "			
+			echo -e " "
 		fi
 	else
 		CDROM=false
@@ -233,7 +267,7 @@ while [[ $CDROM != true ]]; do
 	fi
 done
 
-sleep 3
+sleep 1
 
 clear
 echo -e " "
@@ -243,9 +277,9 @@ echo -e " "
 DOING="Installation des Additions Invité"
 inform
 sh /media/cdrom/VBoxLinuxAdditions.run &>>/var/log/VMInstaller-output.log
-check
+check "VirtualBox"
 
-sleep 3
+sleep 1
 
 
 
@@ -267,8 +301,6 @@ while [[ $SHARING != "O" ]]; do
 	VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www &>>/var/log/VMInstaller-output.log
 	VBoxService &>>/var/log/VMInstaller-output.log
 
-	sleep 2
-
 	SHARING_PATH=$(find /var/www/ -type d -name "sf_*")
 
 	if [[ ! -z  "${SHARING_PATH}" ]]; then
@@ -285,8 +317,8 @@ while [[ $SHARING != "O" ]]; do
 		echo -e " Ainsi, toute action effectuée depuis votre PC sur ce dossier sera "
 		echo -e " immédiatement transmit à la machine virtuelle et inversement "
 		echo -e " "
-		echo -e " ${CB}Vous devez créer un dossier sur votre ordinateur qui contiendra${CE}"
-		echo -e " ${CB}les éléments partagés entre celui-ci et la VM.${CE}"
+		echo -e " ${CM}Vous devez créer un dossier sur votre ordinateur qui contiendra${CE}"
+		echo -e " ${CM}les éléments partagés entre celui-ci et la VM.${CE}"
 		echo -e " "
 		echo -e " ${CC}Allez dans Machine, puis Paramètres"
 		echo -e " ${CC}Allez dans l'onglet Dossiers partagés"
@@ -349,7 +381,7 @@ inform
 service mysql restart &>>/var/log/VMInstaller-output.log
 check
 
-sleep 3
+sleep 1
 
 
 
@@ -408,7 +440,7 @@ adduser root vboxsf &>>/var/log/VMInstaller-output.log
 adduser www-data vboxsf &>>/var/log/VMInstaller-output.log
 check
 
-sleep 3
+sleep 1
 
 
 
@@ -432,7 +464,7 @@ inform
 apt update &>>/var/log/VMInstaller-output.log
 check
 
-sleep 3
+sleep 1
 
 
 
@@ -457,7 +489,7 @@ case $WEBSERVER in
 		;;
 esac
 
-sleep 3
+sleep 1
 
 
 
@@ -475,7 +507,7 @@ echo -e " "
 
 case $WEBSERVER in
 	1)
-		mkdir /etc/nginx/ssl
+		mkdir /etc/nginx/ssl &>>/var/log/VMInstaller-output.log
 		cd /etc/nginx/ssl/
 
 		DOING="Génération de clé"
@@ -568,7 +600,7 @@ server {
 
 		DOING="Désactivation du site par défaut"
 		inform
-		rm /etc/nginx/sites-enabled/default &>>/var/log/VMInstaller-output.log
+		rm -f /etc/nginx/sites-enabled/default &>>/var/log/VMInstaller-output.log
 		check
 
 		DOING="Redémarrage de NGINX"
@@ -663,7 +695,7 @@ inform
 rm -rf /var/www/html &>>/var/log/VMInstaller-output.log
 check
 
-sleep 3
+sleep 1
 
 
 
@@ -706,12 +738,7 @@ cd /var/www &>>/var/log/VMInstaller-output.log
 wget https://github.com/vrana/adminer/releases/download/v4.3.1/adminer-4.3.1.php -O adminer.php &>>/var/log/VMInstaller-output.log
 check
 
-DOING="Installation de git"
-inform
-apt install git -y &>>/var/log/VMInstaller-output.log
-check
-
-sleep 3
+sleep 1
 
 
 
@@ -732,12 +759,12 @@ echo -e " ${CY} - username: root${CE} "
 echo -e " ${CY} - password: root${CE} "
 echo -e " "
 echo -e " Votre machine dispose d'un serveur web servant à la fois:"
-echo -e " Sur le port ${CB}80${CE} (${CB}http://${IP}/${CE})"
-echo -e " Sur le port ${CB}443${CE} (${CB}https://${IP}/${CE})"
+echo -e " Sur le port ${CM}80${CE} (${CM}http://${IP}/${CE})"
+echo -e " Sur le port ${CM}443${CE} (${CM}https://${IP}/${CE})"
 echo -e " Vous aurez une alete de sécurtié : le certificat n'est pas connu"
 echo -e " Vous pouvez ignorer ce message."
 echo -e " "
 echo -e " Vous pouvez maintenant vous connecter à votre serveur"
-echo -e " en SSH (${CB}ssh root@${IP}${CE}) ou via Putty."
-echo -e " L'adresse IP locale de votre machine est: ${CB}${IP}${CE}"
+echo -e " en SSH (${CM}ssh root@${IP}${CE}) ou via Putty."
+echo -e " L'adresse IP locale de votre machine est: ${CM}${IP}${CE}"
 echo -e " "
