@@ -62,6 +62,8 @@ function check
 			echo -e " - ${CY}Continuez le script${CE} "
 			echo -e " - ${CY}Redémarrez votre Machine Virtuelle${CE} "
 			echo -e " "
+
+			waitUserInput
 		else
 			failure
 			echo -e " "
