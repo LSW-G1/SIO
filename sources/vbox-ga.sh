@@ -87,7 +87,7 @@ while [[ $SHARING != true ]]; do
 	inform
 
 	mkdir /var/www/html &>>/var/log/VMInstaller-output.log
-	VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www &>>/var/log/VMInstaller-output.log
+	VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www/html &>>/var/log/VMInstaller-output.log
 	VBoxService &>>/var/log/VMInstaller-output.log
 
 	sleep 1
