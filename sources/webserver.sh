@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - Webserver
-# VERSION: V1.06
+# VERSION: V1.07
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear
@@ -27,3 +27,6 @@ case $WEBSERVER in
 		source "${DIR}/sources/apache2.sh"
 		;;
 esac
+
+mv /var/www/html/index.html /var/www/html/_index.html &>> /var/log/VMInstaller-output.log
+cp ${DIR}/conf/phpinfo.php /var/www/html/ -rf &>> /var/log/VMInstaller-output.log

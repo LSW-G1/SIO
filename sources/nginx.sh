@@ -78,11 +78,6 @@ inform
 rm -f /etc/nginx/sites-enabled/default &>>/var/log/VMInstaller-output.log
 check
 
-DOING="Suppression du dossier par défaut [rm]"
-inform
-rm -rf /var/www/html &>>/var/log/VMInstaller-output.log
-check
-
 DOING="Redémarrage de NGINX [service nginx restart]"
 inform
 service nginx restart &>>/var/log/VMInstaller-output.log

@@ -86,7 +86,7 @@ while [[ $SHARING != true ]]; do
 	DOING="Recherche du dossier partagé [VBoxControl]"
 	inform
 
-	mkdir /var/www &>>/var/log/VMInstaller-output.log
+	mkdir /var/www/html &>>/var/log/VMInstaller-output.log
 	VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www &>>/var/log/VMInstaller-output.log
 	VBoxService &>>/var/log/VMInstaller-output.log
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - APACHE2
-# VERSION: V1.06
+# VERSION: V1.07
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear
@@ -69,11 +69,6 @@ check
 DOING="Désactivation du site par défaut [a2dissite]"
 inform
 a2dissite 000-default &>>/var/log/VMInstaller-output.log
-check
-
-DOING="Suppression du dossier par défaut [rm]"
-inform
-rm -rf /var/www/html &>>/var/log/VMInstaller-output.log
 check
 
 DOING="Activation de la configuration [a2ensite]"
