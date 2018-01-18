@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - MariaDB
-# VERSION: V1.06
+# VERSION: V1.08
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear
@@ -22,8 +22,8 @@ mysql -proot -e "UPDATE mysql.user SET Password = PASSWORD('root') WHERE User = 
 mysql -proot -e "DROP USER ''@'localhost'" &>>/var/log/VMInstaller-output.log
 mysql -proot -e "DROP USER ''@'$(hostname)'" &>>/var/log/VMInstaller-output.log
 mysql -proot -e "DROP DATABASE test" &>>/var/log/VMInstaller-output.log
-mysql -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root'" &>>/var/log/VMInstaller-output.log
-mysql -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root'" &>>/var/log/VMInstaller-output.log
+mysql -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root' WITH GRANT OPTION" &>>/var/log/VMInstaller-output.log
+mysql -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION" &>>/var/log/VMInstaller-output.log
 mysql -proot -e "FLUSH PRIVILEGES" &>>/var/log/VMInstaller-output.log
 
 # Allow external connection
