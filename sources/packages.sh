@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - Packages System
-# VERSION: V1.06
+# VERSION: V1.08
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear
@@ -22,7 +22,7 @@ for i in $APT_COMMANDS; do
 done
 
 # INSTALLATION COMMANDS
-APT_PACKAGES="make gcc dkms linux-source linux-headers-$(uname -r) apt-transport-https lsb-release ca-certificates openssh-server git"
+APT_PACKAGES="make gcc dkms linux-source linux-headers-$(uname -r) apt-transport-https lsb-release ca-certificates openssh-server git screen"
 for i in $APT_PACKAGES; do
 	DOING="Installation des paquets [apt install ${i}]"
 	inform
