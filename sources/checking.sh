@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - Checking Root Access
-# VERSION: V1.06
+# VERSION: V1.09
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 # Checking root access
@@ -23,11 +23,7 @@ while [[ $CONFIRM != "O" && $CONFIRM != "N" && $CONFIRM != "o" && $CONFIRM != "n
 	read -p " Voulez-vous continuer ? [O/N]: " CONFIRM
 done
 
-
 if [[ $CONFIRM == "O" || $CONFIRM == "o" ]]; then
-	echo -e " ${CG}Lancement du script...${CE}"
-	echo -e " "
-
 	log "INFO" "Local IP: ${IP}"
 	log "INFO" "Linux version: $(uname -a)"
 	log "INFO" "Debian version: $(cat /etc/debian_version)"
@@ -39,4 +35,19 @@ else
 
 	log "FAILED" "${DOING}"
 	exit 1
+fi
+
+# Should we install VirtualBox - GA ?
+DOING="Autorisation de l'installation des Additions Invités"
+while [[ $VBOXGA != "O" && $VBOXGA != "N" && $VBOXGA != "o" && $VBOXGA != "n" ]]; do
+	read -p " Voulez-vous installer les additions invités [VirtualBox Guest Additions]: " VBOXGA
+done
+
+if [[ $VBOXGA == "O" || $VBOXGA == "o" ]]; then
+	echo -e " ${CG}Lancement du script...${CE}"
+	echo -e " "
+
+	log "INFO" "VboxGA install: true"
+else
+	log "INFO" "VboxGA install: false"
 fi

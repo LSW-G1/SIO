@@ -33,5 +33,5 @@ mv composer.phar /usr/local/bin/composer &>>/var/log/VMInstaller-output.log
 DOING="Téléchargement d'adminer.php [wget]"
 inform
 cd /var/www/html &>>/var/log/VMInstaller-output.log
-wget https://github.com/vrana/adminer/releases/download/v4.3.1/adminer-4.3.1.php -O adminer.php &>>/var/log/VMInstaller-output.log
+wget https://github.com/vrana/adminer/releases/download/v4.5.0/adminer-4.5.0-mysql.php -O adminer.php &>>/var/log/VMInstaller-output.log
 check

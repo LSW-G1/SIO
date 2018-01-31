@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - Welcome
-# VERSION: V1.06
+# VERSION: V1.09
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear

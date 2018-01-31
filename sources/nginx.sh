@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - Nginx
-# VERSION: V1.06
+# VERSION: V1.09
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear
@@ -18,8 +18,10 @@ check
 DOING="Changement des permissions [chmod 755]"
 inform
 chmod 755 -R /var/www &>>/var/log/VMInstaller-output.log
-adduser root vboxsf &>>/var/log/VMInstaller-output.log
-adduser www-data vboxsf &>>/var/log/VMInstaller-output.log
+if [[ $VBOXGA == "O" || $VBOXGA == "o" ]]; then
+	adduser root vboxsf &>>/var/log/VMInstaller-output.log
+	adduser www-data vboxsf &>>/var/log/VMInstaller-output.log
+fi
 check
 
 

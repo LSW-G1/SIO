@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - Packages System
-# VERSION: V1.08
+# VERSION: V1.09
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear
@@ -21,11 +21,23 @@ for i in $APT_COMMANDS; do
 	check
 done
 
-# INSTALLATION COMMANDS
-APT_PACKAGES="make gcc dkms linux-source linux-headers-$(uname -r) apt-transport-https lsb-release ca-certificates openssh-server git screen"
+# PACKAGES INSTALLATION COMMANDS
+APT_PACKAGES="apt-transport-https lsb-release ca-certificates openssh-server git screen"
 for i in $APT_PACKAGES; do
 	DOING="Installation des paquets [apt install ${i}]"
 	inform
 	apt install -y ${i} &>>/var/log/VMInstaller-output.log
 	check
 done
+
+
+if [[ $VBOXGA == "O" || $VBOXGA == "o" ]]; then
+	# VBOX INSTALLATION COMMANDS
+	APT_PACKAGES="make gcc dkms linux-source linux-headers-$(uname -r)"
+	for i in $APT_PACKAGES; do
+		DOING="Installation des paquets [apt install ${i}]"
+		inform
+		apt install -y ${i} &>>/var/log/VMInstaller-output.log
+		check
+	done
+fi
