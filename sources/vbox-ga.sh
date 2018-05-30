@@ -86,16 +86,22 @@ while [[ $SHARING != true ]]; do
 	DOING="Recherche du dossier partagé [VBoxControl]"
 	inform
 
-	mkdir /var/www/html &>>/var/log/VMInstaller-output.log
-	VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www/html &>>/var/log/VMInstaller-output.log
-	VBoxService &>>/var/log/VMInstaller-output.log
+	mkdir -p /var/www/html/share &>>/var/log/VMInstaller-output.log
+	# Old & Easy way. Thanks VirtualBox 5.2.12...
+	# VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www/html &>>/var/log/VMInstaller-output.log
+	# VBoxService &>>/var/log/VMInstaller-output.log
 
-	sleep 1
+	# Thanks https://unix.stackexchange.com/questions/353921/cutting-id-output?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+	UMASK=$(umask) &>>/var/log/VMInstaller-output.log
+	GID=$(id | awk -F '[=()]' '{print $5}')
+	UUID=$(id | awk -F '[=()]' '{print $2}')
 
-	SHARING_PATH=$(find /var/www/ -type d -name "sf_*" -print -quit)
-	if [[ ! -z "${SHARING_PATH}" ]]; then
+	mount.vboxsf -o umask=${UMASK},gid=${GID},uid=${UUID} share /var/www/html/share &>>/var/log/VMInstaller-output.log
+	if [[ $? -eq 0 ]]; then
 		SHARING=true
 		success
+
+		echo -e "share /var/www/html/share vboxsf umask=${UMASK},gid=${GID},uid=${UUID}" &>> /etc/fstab
 	else
 		SHARING=false
 		failure
@@ -114,6 +120,7 @@ while [[ $SHARING != true ]]; do
 		echo -e " - ${CY}Allez dans Machine, puis Paramètres${CE} "
 		echo -e " - ${CY}Allez dans l'onglet Dossiers Partagés${CE} "
 		echo -e " - ${CY}Sélectionner le dossier à partager${CE} "
+		echo -e " - ${CY}Donnez lui le nom '${CM}share${CY}'${CE} "
 		echo -e " - ${CY}Cochez la case ${CC}'Montage Automatique'${CE} "
 		echo -e " - ${CY}Cochez la case ${CC}'Configuration Permanente'${CE} "
 		echo -e " "
