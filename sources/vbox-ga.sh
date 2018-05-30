@@ -83,10 +83,9 @@ while [[ $SHARING != true ]]; do
 	echo -e " supplémentaires tel que le partage de dossier. "
 	echo -e " "
 
-	DOING="Recherche du dossier partagé [VBoxControl]"
+	DOING="Montage du dossier partagé [mount.vboxsf]"
 	inform
 
-	mkdir -p /var/www/html/share &>>/var/log/VMInstaller-output.log
 	# Old & Easy way. Thanks VirtualBox 5.2.12...
 	# VBoxControl guestproperty set /VirtualBox/GuestAdd/SharedFolders/MountDir /var/www/html &>>/var/log/VMInstaller-output.log
 	# VBoxService &>>/var/log/VMInstaller-output.log
@@ -96,11 +95,14 @@ while [[ $SHARING != true ]]; do
 	GID=$(id | awk -F '[=()]' '{print $5}')
 	UUID=$(id | awk -F '[=()]' '{print $2}')
 
+	# Thanks https://askubuntu.com/questions/123025/what-is-the-correct-way-to-share-directories-with-ubuntu-running-in-a-virtual-bo
+	mkdir -p /var/www/html/share &>>/var/log/VMInstaller-output.log
 	mount.vboxsf -o umask=${UMASK},gid=${GID},uid=${UUID} share /var/www/html/share &>>/var/log/VMInstaller-output.log
 	if [[ $? -eq 0 ]]; then
 		SHARING=true
 		success
 
+		# Persistant sharing
 		echo -e "share /var/www/html/share vboxsf umask=${UMASK},gid=${GID},uid=${UUID}" &>> /etc/fstab
 	else
 		SHARING=false
@@ -121,7 +123,7 @@ while [[ $SHARING != true ]]; do
 		echo -e " - ${CY}Allez dans l'onglet Dossiers Partagés${CE} "
 		echo -e " - ${CY}Sélectionner le dossier à partager${CE} "
 		echo -e " - ${CY}Donnez lui le nom '${CM}share${CY}'${CE} "
-		echo -e " - ${CY}Cochez la case ${CC}'Montage Automatique'${CE} "
+		echo -e " - ${CY}${CM}Ne cochez pas${CY} la case ${CC}'Montage Automatique'${CE} "
 		echo -e " - ${CY}Cochez la case ${CC}'Configuration Permanente'${CE} "
 		echo -e " "
 
