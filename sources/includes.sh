@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - Includes
-# VERSION: V1.06
+# VERSION: V1.11
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 # Colors
@@ -38,6 +38,12 @@ function failure
 {
 	echo -e " \r ${CL}${CR}[FAILED]${CE} - ${DOING}"
 	log "FAIL" "${DOING}"
+
+	echo -e ""
+	echo -e " ${CL}${CR}---| LATEST LINES |---"
+	tail -15 /var/log/VMInstaller-output.log
+	echo -e ""
+	echo -e " ${CE}For more informations, check ${CY}/var/log/VMInstall-output.log${CE}"
 }
 
 function log
