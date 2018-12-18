@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - APACHE2
-# VERSION: V1.09
+# VERSION: V1.11
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear
@@ -78,14 +78,19 @@ inform
 a2ensite website &>>/var/log/VMInstaller-output.log
 check
 
-DOING="Activation des modules 1/2 [a2enmod ssl]"
+DOING="Activation des modules 1/3 [a2enmod ssl]"
 inform
 a2enmod ssl &>>/var/log/VMInstaller-output.log
 check
 
-DOING="Activation des modules 2/2 [a2enmod headers]"
+DOING="Activation des modules 2/3 [a2enmod headers]"
 inform
 a2enmod headers  &>>/var/log/VMInstaller-output.log
+check
+
+DOING="Activation des modules 3/3 [a2enmod rewrite]"
+inform
+a2enmod rewrite  &>>/var/log/VMInstaller-output.log
 check
 
 DOING="Redémarrage d'APACHE [service apache2 restart]"

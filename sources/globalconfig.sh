@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VMInstaller.sh - Global Config
-# VERSION: V1.08
+# VERSION: V1.11
 # AUTHOR: Kevin TARTIERE <ktartiere@gmail.com>
 
 clear
@@ -33,5 +33,5 @@ mv composer.phar /usr/local/bin/composer &>>/var/log/VMInstaller-output.log
 DOING="Téléchargement d'adminer.php [wget]"
 inform
 cd /var/www/html &>>/var/log/VMInstaller-output.log
-wget https://github.com/vrana/adminer/releases/download/v4.5.0/adminer-4.5.0-mysql.php -O adminer.php &>>/var/log/VMInstaller-output.log
+wget https://github.com/vrana/adminer/releases/download/v4.6.3/adminer-4.6.3-mysql.php -O adminer.php &>>/var/log/VMInstaller-output.log
 check
